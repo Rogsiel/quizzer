@@ -1,34 +1,27 @@
 package model
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
-type Quiz struct{
-    ID  uint    `json:"id"`
-    UserID  uint    `json:"user_id"`
-    Title    string `json:"title"`
-    StartTime   time.Time   `json:"start_time"`
-    EndTime time.Time   `json:"end_time"`
-    Questions   []Question  `json:"questions"`
-    Results []Result    `json:"restults"`
+type Quiz struct {
+	ID         int64           `json:"id"`
+	UserID     int64           `json:"user_id"`
+	Title      string          `json:"title"`
+	QuestionNo int32           `json:"question_no"`
+	StartAt    time.Time       `json:"start_at"`
+	EndAt      sql.NullTime    `json:"end_at"`
+	Questions  map[string][]string `json:"questions"`
+	Answers    []int32         `json:"answers"`
+	Answered   int32           `json:"answered"`
 }
 
-type Question struct{
-    ID  uint    `json:"question_id"`
-    Text    string  `json:"text"`
-    Options map[int]string  `json:"options"`
-    Answer string   `json:"answer;omitempty"`
-}
-
-type Result struct{
-    ID  uint    `json:"id"`
-    QuizID  uint    `json:"quiz_id"`
-    AllQuestions    uint    `json:"all"`
-    CorrectAnswers    uint    `json:"correct;ommitempty"`
-    Responses   []UserAnswer    `json:"responses"`
-}
-
-type UserAnswer struct {
-    QuestionID   uint   `json:"question_id"`
-    Answer       string `json:"answer"`
-    IsCorrect    bool   `json:"is_correct,omitempty"`
+type Result struct {
+	ID        int64         `json:"id"`
+	QuizID    int64         `json:"quiz_id"`
+	UserID    int64         `json:"user_id"`
+	SentAt    time.Time     `json:"sent_at"`
+	Score     sql.NullInt32 `json:"score"`
+	Responses []int32       `json:"responses"`
 }
