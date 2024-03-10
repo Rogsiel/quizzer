@@ -54,7 +54,7 @@ type AnswerTxParams struct{
 
 type AnswerTxResult struct{
 	Result Result	`json:"result"`
-	Score sql.NullInt32
+	Score sql.NullInt32 `json:"score"`
 }
 
 func (store *Store) AnswerTx(ctx context.Context, arg AnswerTxParams) (AnswerTxResult, error) {
