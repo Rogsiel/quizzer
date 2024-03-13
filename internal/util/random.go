@@ -15,8 +15,8 @@ func init() {
     rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
-func RandInt(min, max int64) int64{
-    return min + rand.Int63n(max - min + 1)
+func RandInt(min, max int32) int32{
+    return min + rand.Int31n(max - min + 1)
 }
 
 func RandString(n int) string{
@@ -38,18 +38,15 @@ func RandomEmail() string{
     return fmt.Sprintf("%s@%s.%s", RandString(6), RandString(4), RandString(3))
 }
 
-func RandQuestions(n int) []model.Question{
-    var qustions []model.Question
-    for q := 0; q < n; q++ {
+func RandQuestions(n int32) model.Question{
+    qustions := make(model.Question)
+    for q := 0; q < int(n); q++ {
 	prompt := RandString(100)
 	var options []string
 	for i :=0; i < 3; i++ {
 	    options = append(options, RandString(30))
 	}
-	question := map[string][]string {
-	    prompt: options,
-	}
-	qustions = append(qustions, question)	
+	qustions[prompt] = options
     }
     return qustions
 }

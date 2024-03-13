@@ -13,16 +13,16 @@ CREATE TABLE "quiz" (
   "start_at" timestamp NOT NULL DEFAULT 'now()',
   "end_at" timestamp,
   "questions" JSONB NOT NULL,
-  "answers" int[],
-  "answered" int NOT NULL
+  "answered" int NOT NULL DEFAULT 0,
+  "answers" int[]
 );
 
 CREATE TABLE "result" (
   "id" bigserial NOT NULL,
   "quiz_id" bigserial NOT NULL,
   "user_id" bigserial NOT NULL,
-  "sent_at" timestamp NOT NULL,
-  "score" int,
+  "sent_at" timestamp NOT NULL DEFAULT 'now()',
+  "score" int NOT NULL DEFAULT 0,
   "responses" int[] NOT NULL
 );
 

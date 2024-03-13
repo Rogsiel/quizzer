@@ -16,10 +16,9 @@ import (
 
 const createQuiz = `-- name: CreateQuiz :one
 INSERT INTO "quiz" (
-  user_id, title, question_no, start_at, end_at, questions, answers, answered
-) VALUES 
-($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id
+  user_id, title, question_no, start_at, end_at, questions, answers) VALUES 
+($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, user_id, title, question_no, start_at, end_at, questions, answered, answers
 `
 
 type CreateQuizParams struct {
@@ -30,10 +29,9 @@ type CreateQuizParams struct {
 	EndAt      sql.NullTime    `json:"end_at"`
 	Questions  json.RawMessage `json:"questions"`
 	Answers    []int32         `json:"answers"`
-	Answered   int32           `json:"answered"`
 }
 
-func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (int64, error) {
+func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (Quiz, error) {
 	row := q.queryRow(ctx, q.createQuizStmt, createQuiz,
 		arg.UserID,
 		arg.Title,
@@ -42,11 +40,20 @@ func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (int64, 
 		arg.EndAt,
 		arg.Questions,
 		pq.Array(arg.Answers),
-		arg.Answered,
 	)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	var i Quiz
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.QuestionNo,
+		&i.StartAt,
+		&i.EndAt,
+		&i.Questions,
+		&i.Answered,
+		pq.Array(&i.Answers),
+	)
+	return i, err
 }
 
 const getCorrectAnswers = `-- name: GetCorrectAnswers :one
@@ -62,13 +69,13 @@ func (q *Queries) GetCorrectAnswers(ctx context.Context, id int64) ([]int32, err
 	return answers, err
 }
 
-const incrementAnswerCount = `-- name: IncrementAnswerCount :exec
+const incrementAnsweredCount = `-- name: IncrementAnsweredCount :exec
 UPDATE "quiz"
 SET answered = answered + 1
 WHERE id = $1
 `
 
-func (q *Queries) IncrementAnswerCount(ctx context.Context, id int64) error {
-	_, err := q.exec(ctx, q.incrementAnswerCountStmt, incrementAnswerCount, id)
+func (q *Queries) IncrementAnsweredCount(ctx context.Context, id int64) error {
+	_, err := q.exec(ctx, q.incrementAnsweredCountStmt, incrementAnsweredCount, id)
 	return err
 }

@@ -12,7 +12,7 @@ type Quiz struct {
 	QuestionNo int32           `json:"question_no"`
 	StartAt    time.Time       `json:"start_at"`
 	EndAt      sql.NullTime    `json:"end_at"`
-	Questions  []Question `json:"questions"`
+	Questions  Question			`json:"questions"`
 	Answers    []int32         `json:"answers"`
 	Answered   int32           `json:"answered"`
 }

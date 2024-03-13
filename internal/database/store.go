@@ -54,7 +54,7 @@ type AnswerTxParams struct{
 
 type AnswerTxResult struct{
 	Result Result	`json:"result"`
-	Score sql.NullInt32 `json:"score"`
+	Score int32 `json:"score"`
 }
 
 func (store *Store) AnswerTx(ctx context.Context, arg AnswerTxParams) (AnswerTxResult, error) {
@@ -63,7 +63,7 @@ func (store *Store) AnswerTx(ctx context.Context, arg AnswerTxParams) (AnswerTxR
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 		
-		result.Result, err = q.AnswerQuiz(ctx, AnswerQuizParams{
+		result.Result, err = q.SendAnswers(ctx, SendAnswersParams{
 			QuizID: arg.QuizID,
 			UserID: arg.UserID,
 			Responses: arg.Responses,
@@ -82,15 +82,16 @@ func (store *Store) AnswerTx(ctx context.Context, arg AnswerTxParams) (AnswerTxR
 		}
 		
 		score := store.CalculateScore(arg.Responses, correctAnswers)
-		result.Score, err = q.InsertScore(ctx, InsertScoreParams{
+		result.Score, err = q.UpdateScore(ctx, UpdateScoreParams{
 			ID: result.Result.ID,
-			Score: sql.NullInt32{score, true},
+			Score: score,
 		})
 		if err != nil {
 			return err
 		}
 		
-		if err = q.IncrementAnswerCount(ctx, arg.QuizID); err != nil{
+		err = q.IncrementAnsweredCount(ctx, arg.QuizID)
+		if err != nil {
 			return err
 		}
 

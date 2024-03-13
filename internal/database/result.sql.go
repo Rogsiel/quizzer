@@ -7,30 +7,32 @@ package db
 
 import (
 	"context"
-	"database/sql"
+	"time"
 
 	"github.com/lib/pq"
 )
 
-const answerQuiz = `-- name: AnswerQuiz :one
+const sendAnswers = `-- name: SendAnswers :one
 INSERT INTO "result" (
-  quiz_id, user_id, score, responses
+  quiz_id, user_id, sent_at, score, responses
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5
 ) RETURNING id, quiz_id, user_id, sent_at, score, responses
 `
 
-type AnswerQuizParams struct {
-	QuizID    int64         `json:"quiz_id"`
-	UserID    int64         `json:"user_id"`
-	Score     sql.NullInt32 `json:"score"`
-	Responses []int32       `json:"responses"`
+type SendAnswersParams struct {
+	QuizID    int64     `json:"quiz_id"`
+	UserID    int64     `json:"user_id"`
+	SentAt    time.Time `json:"sent_at"`
+	Score     int32     `json:"score"`
+	Responses []int32   `json:"responses"`
 }
 
-func (q *Queries) AnswerQuiz(ctx context.Context, arg AnswerQuizParams) (Result, error) {
-	row := q.queryRow(ctx, q.answerQuizStmt, answerQuiz,
+func (q *Queries) SendAnswers(ctx context.Context, arg SendAnswersParams) (Result, error) {
+	row := q.queryRow(ctx, q.sendAnswersStmt, sendAnswers,
 		arg.QuizID,
 		arg.UserID,
+		arg.SentAt,
 		arg.Score,
 		pq.Array(arg.Responses),
 	)
@@ -46,21 +48,21 @@ func (q *Queries) AnswerQuiz(ctx context.Context, arg AnswerQuizParams) (Result,
 	return i, err
 }
 
-const insertScore = `-- name: InsertScore :one
+const updateScore = `-- name: UpdateScore :one
 UPDATE "result"
   SET score = $2
   WHERE id = $1
   RETURNING score
 `
 
-type InsertScoreParams struct {
-	ID    int64         `json:"id"`
-	Score sql.NullInt32 `json:"score"`
+type UpdateScoreParams struct {
+	ID    int64 `json:"id"`
+	Score int32 `json:"score"`
 }
 
-func (q *Queries) InsertScore(ctx context.Context, arg InsertScoreParams) (sql.NullInt32, error) {
-	row := q.queryRow(ctx, q.insertScoreStmt, insertScore, arg.ID, arg.Score)
-	var score sql.NullInt32
+func (q *Queries) UpdateScore(ctx context.Context, arg UpdateScoreParams) (int32, error) {
+	row := q.queryRow(ctx, q.updateScoreStmt, updateScore, arg.ID, arg.Score)
+	var score int32
 	err := row.Scan(&score)
 	return score, err
 }
