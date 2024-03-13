@@ -18,17 +18,17 @@ type Quiz struct {
 	StartAt    time.Time       `json:"start_at"`
 	EndAt      sql.NullTime    `json:"end_at"`
 	Questions  json.RawMessage `json:"questions"`
-	Answers    []int32         `json:"answers"`
 	Answered   int32           `json:"answered"`
+	Answers    []int32         `json:"answers"`
 }
 
 type Result struct {
-	ID        int64         `json:"id"`
-	QuizID    int64         `json:"quiz_id"`
-	UserID    int64         `json:"user_id"`
-	SentAt    time.Time     `json:"sent_at"`
-	Score     sql.NullInt32 `json:"score"`
-	Responses []int32       `json:"responses"`
+	ID        int64     `json:"id"`
+	QuizID    int64     `json:"quiz_id"`
+	UserID    int64     `json:"user_id"`
+	SentAt    time.Time `json:"sent_at"`
+	Score     int32     `json:"score"`
+	Responses []int32   `json:"responses"`
 }
 
 type User struct {

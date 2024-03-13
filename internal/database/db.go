@@ -24,9 +24,6 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
-	if q.answerQuizStmt, err = db.PrepareContext(ctx, answerQuiz); err != nil {
-		return nil, fmt.Errorf("error preparing query AnswerQuiz: %w", err)
-	}
 	if q.createQuizStmt, err = db.PrepareContext(ctx, createQuiz); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateQuiz: %w", err)
 	}
@@ -45,11 +42,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUsersStmt, err = db.PrepareContext(ctx, getUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUsers: %w", err)
 	}
-	if q.incrementAnswerCountStmt, err = db.PrepareContext(ctx, incrementAnswerCount); err != nil {
-		return nil, fmt.Errorf("error preparing query IncrementAnswerCount: %w", err)
+	if q.incrementAnsweredCountStmt, err = db.PrepareContext(ctx, incrementAnsweredCount); err != nil {
+		return nil, fmt.Errorf("error preparing query IncrementAnsweredCount: %w", err)
 	}
-	if q.insertScoreStmt, err = db.PrepareContext(ctx, insertScore); err != nil {
-		return nil, fmt.Errorf("error preparing query InsertScore: %w", err)
+	if q.sendAnswersStmt, err = db.PrepareContext(ctx, sendAnswers); err != nil {
+		return nil, fmt.Errorf("error preparing query SendAnswers: %w", err)
+	}
+	if q.updateScoreStmt, err = db.PrepareContext(ctx, updateScore); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateScore: %w", err)
 	}
 	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
@@ -59,11 +59,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
-	if q.answerQuizStmt != nil {
-		if cerr := q.answerQuizStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing answerQuizStmt: %w", cerr)
-		}
-	}
 	if q.createQuizStmt != nil {
 		if cerr := q.createQuizStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createQuizStmt: %w", cerr)
@@ -94,14 +89,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUsersStmt: %w", cerr)
 		}
 	}
-	if q.incrementAnswerCountStmt != nil {
-		if cerr := q.incrementAnswerCountStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing incrementAnswerCountStmt: %w", cerr)
+	if q.incrementAnsweredCountStmt != nil {
+		if cerr := q.incrementAnsweredCountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing incrementAnsweredCountStmt: %w", cerr)
 		}
 	}
-	if q.insertScoreStmt != nil {
-		if cerr := q.insertScoreStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing insertScoreStmt: %w", cerr)
+	if q.sendAnswersStmt != nil {
+		if cerr := q.sendAnswersStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing sendAnswersStmt: %w", cerr)
+		}
+	}
+	if q.updateScoreStmt != nil {
+		if cerr := q.updateScoreStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateScoreStmt: %w", cerr)
 		}
 	}
 	if q.updateUserStmt != nil {
@@ -146,33 +146,33 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                       DBTX
-	tx                       *sql.Tx
-	answerQuizStmt           *sql.Stmt
-	createQuizStmt           *sql.Stmt
-	createUserStmt           *sql.Stmt
-	deleteUserStmt           *sql.Stmt
-	getCorrectAnswersStmt    *sql.Stmt
-	getUserStmt              *sql.Stmt
-	getUsersStmt             *sql.Stmt
-	incrementAnswerCountStmt *sql.Stmt
-	insertScoreStmt          *sql.Stmt
-	updateUserStmt           *sql.Stmt
+	db                         DBTX
+	tx                         *sql.Tx
+	createQuizStmt             *sql.Stmt
+	createUserStmt             *sql.Stmt
+	deleteUserStmt             *sql.Stmt
+	getCorrectAnswersStmt      *sql.Stmt
+	getUserStmt                *sql.Stmt
+	getUsersStmt               *sql.Stmt
+	incrementAnsweredCountStmt *sql.Stmt
+	sendAnswersStmt            *sql.Stmt
+	updateScoreStmt            *sql.Stmt
+	updateUserStmt             *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                       tx,
-		tx:                       tx,
-		answerQuizStmt:           q.answerQuizStmt,
-		createQuizStmt:           q.createQuizStmt,
-		createUserStmt:           q.createUserStmt,
-		deleteUserStmt:           q.deleteUserStmt,
-		getCorrectAnswersStmt:    q.getCorrectAnswersStmt,
-		getUserStmt:              q.getUserStmt,
-		getUsersStmt:             q.getUsersStmt,
-		incrementAnswerCountStmt: q.incrementAnswerCountStmt,
-		insertScoreStmt:          q.insertScoreStmt,
-		updateUserStmt:           q.updateUserStmt,
+		db:                         tx,
+		tx:                         tx,
+		createQuizStmt:             q.createQuizStmt,
+		createUserStmt:             q.createUserStmt,
+		deleteUserStmt:             q.deleteUserStmt,
+		getCorrectAnswersStmt:      q.getCorrectAnswersStmt,
+		getUserStmt:                q.getUserStmt,
+		getUsersStmt:               q.getUsersStmt,
+		incrementAnsweredCountStmt: q.incrementAnsweredCountStmt,
+		sendAnswersStmt:            q.sendAnswersStmt,
+		updateScoreStmt:            q.updateScoreStmt,
+		updateUserStmt:             q.updateUserStmt,
 	}
 }
