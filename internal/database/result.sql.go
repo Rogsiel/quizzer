@@ -7,26 +7,35 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/lib/pq"
 )
 
 const sendAnswers = `-- name: SendAnswers :one
 INSERT INTO "result" (
-  quiz_id, user_id, responses
+  quiz_id, user_id, sent_at, score, responses
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4, $5
 ) RETURNING id, quiz_id, user_id, sent_at, score, responses
 `
 
 type SendAnswersParams struct {
-	QuizID    int64   `json:"quiz_id"`
-	UserID    int64   `json:"user_id"`
-	Responses []int32 `json:"responses"`
+	QuizID    int64     `json:"quiz_id"`
+	UserID    int64     `json:"user_id"`
+	SentAt    time.Time `json:"sent_at"`
+	Score     int32     `json:"score"`
+	Responses []int32   `json:"responses"`
 }
 
 func (q *Queries) SendAnswers(ctx context.Context, arg SendAnswersParams) (Result, error) {
-	row := q.queryRow(ctx, q.sendAnswersStmt, sendAnswers, arg.QuizID, arg.UserID, pq.Array(arg.Responses))
+	row := q.queryRow(ctx, q.sendAnswersStmt, sendAnswers,
+		arg.QuizID,
+		arg.UserID,
+		arg.SentAt,
+		arg.Score,
+		pq.Array(arg.Responses),
+	)
 	var i Result
 	err := row.Scan(
 		&i.ID,

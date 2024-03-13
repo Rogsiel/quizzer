@@ -1,8 +1,8 @@
 -- name: SendAnswers :one
 INSERT INTO "result" (
-  quiz_id, user_id, responses
+  quiz_id, user_id, sent_at, score, responses
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4, $5
 ) RETURNING *;
 
 -- name: UpdateScore :one

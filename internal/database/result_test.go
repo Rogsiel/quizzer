@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/rogsiel/quizzer/internal/util"
 	"github.com/stretchr/testify/require"
@@ -20,6 +21,8 @@ func createRandomResult(t *testing.T) Result {
 	arg := SendAnswersParams{
 		QuizID: quiz.ID,
 		UserID: user.ID,
+		SentAt: time.Now(),
+		Score: 0,
 		Responses: responses,
 	}
 	result, err := testQueries.SendAnswers(context.Background(), arg)
