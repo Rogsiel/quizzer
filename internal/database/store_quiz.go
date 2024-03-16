@@ -16,7 +16,7 @@ type CreateQuizTxParams struct{
 	QuestionNo	int32           `json:"question_no"`
 	StartAt		time.Time       `json:"start_at"`
 	EndAt		sql.NullTime    `json:"end_at"`
-	Questions	model.Quiz		`json:"questions"`
+	Questions	model.Question	`json:"questions"`
 	Answers		[]int32         `json:"answers"`
 }
 
@@ -46,7 +46,20 @@ func (store *Store) CreateQuizTx(ctx context.Context, arg CreateQuizTxParams) (C
 	return Quiz, err
 }
 
+func (store *Store) GetQuizTx(ctx context.Context, id int64) (Quiz, error) {
+	var quiz Quiz
 
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		quiz, err = store.GetQuiz(ctx, id)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return quiz, err
+}
 
 func (store *Store) GetCorrectAnswersTx(ctx context.Context, QuizID int64) ([]int32, error) {
 	var Answers []int32
