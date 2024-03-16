@@ -1,3 +1,8 @@
+-- name: GetQuiz :one
+SELECT *
+FROM "quiz"
+WHERE id = $1;
+
 -- name: CreateQuiz :one
 INSERT INTO "quiz" (
   user_id, title, question_no, start_at, end_at, questions, answers) VALUES 

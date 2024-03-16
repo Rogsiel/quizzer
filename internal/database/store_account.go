@@ -78,7 +78,7 @@ func (store *Store) GetUsersTx(ctx context.Context, arg GetUsersTxParams) (GetUs
 
 type UpdateUserTxParams struct {
 	ID		int64	`json:"id"`
-	Name	string	`json:"name"`
+	NewName	string	`json:"name"`
 }
 
 func (store *Store) UpdateUserTx(ctx context.Context, arg UpdateUserTxParams) (UserTxResult, error) {
@@ -89,7 +89,7 @@ func (store *Store) UpdateUserTx(ctx context.Context, arg UpdateUserTxParams) (U
 
 		UpdatedUser.User, err = q.UpdateUser(ctx, UpdateUserParams{
 			ID: arg.ID,
-			Name: arg.Name,
+			Name: arg.NewName,
 		})
 		if err != nil {
 			return err

@@ -64,3 +64,12 @@ func TestIncrementAnsweredCount(t *testing.T) {
 	err := testQueries.IncrementAnsweredCount(context.Background(), quiz.ID)
 	require.NoError(t, err)
 }
+
+func TestGetQuiz(t *testing.T) {
+	quiz := createRandomQuiz(t)
+	result, err := testQueries.GetQuiz(context.Background(), quiz.ID)
+	require.NoError(t, err)
+	
+	require.Equal(t, quiz.Title, result.Title)
+	require.Equal(t, quiz.Questions, result.Questions)
+}
