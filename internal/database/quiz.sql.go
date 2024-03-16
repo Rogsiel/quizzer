@@ -69,6 +69,29 @@ func (q *Queries) GetCorrectAnswers(ctx context.Context, id int64) ([]int32, err
 	return answers, err
 }
 
+const getQuiz = `-- name: GetQuiz :one
+SELECT id, user_id, title, question_no, start_at, end_at, questions, answered, answers
+FROM "quiz"
+WHERE id = $1
+`
+
+func (q *Queries) GetQuiz(ctx context.Context, id int64) (Quiz, error) {
+	row := q.queryRow(ctx, q.getQuizStmt, getQuiz, id)
+	var i Quiz
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Title,
+		&i.QuestionNo,
+		&i.StartAt,
+		&i.EndAt,
+		&i.Questions,
+		&i.Answered,
+		pq.Array(&i.Answers),
+	)
+	return i, err
+}
+
 const incrementAnsweredCount = `-- name: IncrementAnsweredCount :exec
 UPDATE "quiz"
 SET answered = answered + 1
