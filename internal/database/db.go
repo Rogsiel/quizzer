@@ -36,6 +36,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getCorrectAnswersStmt, err = db.PrepareContext(ctx, getCorrectAnswers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCorrectAnswers: %w", err)
 	}
+	if q.getQuizStmt, err = db.PrepareContext(ctx, getQuiz); err != nil {
+		return nil, fmt.Errorf("error preparing query GetQuiz: %w", err)
+	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
 	}
@@ -77,6 +80,11 @@ func (q *Queries) Close() error {
 	if q.getCorrectAnswersStmt != nil {
 		if cerr := q.getCorrectAnswersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getCorrectAnswersStmt: %w", cerr)
+		}
+	}
+	if q.getQuizStmt != nil {
+		if cerr := q.getQuizStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getQuizStmt: %w", cerr)
 		}
 	}
 	if q.getUserStmt != nil {
@@ -152,6 +160,7 @@ type Queries struct {
 	createUserStmt             *sql.Stmt
 	deleteUserStmt             *sql.Stmt
 	getCorrectAnswersStmt      *sql.Stmt
+	getQuizStmt                *sql.Stmt
 	getUserStmt                *sql.Stmt
 	getUsersStmt               *sql.Stmt
 	incrementAnsweredCountStmt *sql.Stmt
@@ -168,6 +177,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createUserStmt:             q.createUserStmt,
 		deleteUserStmt:             q.deleteUserStmt,
 		getCorrectAnswersStmt:      q.getCorrectAnswersStmt,
+		getQuizStmt:                q.getQuizStmt,
 		getUserStmt:                q.getUserStmt,
 		getUsersStmt:               q.getUsersStmt,
 		incrementAnsweredCountStmt: q.incrementAnsweredCountStmt,
