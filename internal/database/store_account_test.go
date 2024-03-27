@@ -17,10 +17,9 @@ func TestSignupTx(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		go func ()  {
-			credentials := util.RandUserData()
 			account, err := store.SignupTx(context.Background(), SignupTxParams{
-				Name: credentials.Name,
-				Email: credentials.Email,
+				Name: util.RandUsername(),
+				Email: util.RandomEmail(),
 			})
 			errs <- err
 			results <- account
