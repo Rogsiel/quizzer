@@ -50,3 +50,11 @@ func RandQuestions(n int32) model.Question{
     }
     return qustions
 }
+
+func RandAnswers(n int) []int32 {
+    var answers []int32
+    for i := 0; i < n; i++ {
+	answers = append(answers, RandInt(0,2))
+    }
+    return answers
+}
