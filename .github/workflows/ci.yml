@@ -31,6 +31,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: install golang-migrate
+      run: |
+        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.deb | tar xvz
+        sudo mv migrate.linux-amd64 /usr/bin
+        which migrate
+
     - name: Run Migrations
       run: make migrateup
 
