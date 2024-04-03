@@ -42,6 +42,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
 	}
+	if q.getUserQuizStmt, err = db.PrepareContext(ctx, getUserQuiz); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserQuiz: %w", err)
+	}
+	if q.getUserUsernameStmt, err = db.PrepareContext(ctx, getUserUsername); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserUsername: %w", err)
+	}
 	if q.getUsersStmt, err = db.PrepareContext(ctx, getUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUsers: %w", err)
 	}
@@ -90,6 +96,16 @@ func (q *Queries) Close() error {
 	if q.getUserStmt != nil {
 		if cerr := q.getUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
+		}
+	}
+	if q.getUserQuizStmt != nil {
+		if cerr := q.getUserQuizStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserQuizStmt: %w", cerr)
+		}
+	}
+	if q.getUserUsernameStmt != nil {
+		if cerr := q.getUserUsernameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserUsernameStmt: %w", cerr)
 		}
 	}
 	if q.getUsersStmt != nil {
@@ -162,6 +178,8 @@ type Queries struct {
 	getCorrectAnswersStmt      *sql.Stmt
 	getQuizStmt                *sql.Stmt
 	getUserStmt                *sql.Stmt
+	getUserQuizStmt            *sql.Stmt
+	getUserUsernameStmt        *sql.Stmt
 	getUsersStmt               *sql.Stmt
 	incrementAnsweredCountStmt *sql.Stmt
 	sendAnswersStmt            *sql.Stmt
@@ -179,6 +197,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getCorrectAnswersStmt:      q.getCorrectAnswersStmt,
 		getQuizStmt:                q.getQuizStmt,
 		getUserStmt:                q.getUserStmt,
+		getUserQuizStmt:            q.getUserQuizStmt,
+		getUserUsernameStmt:        q.getUserUsernameStmt,
 		getUsersStmt:               q.getUsersStmt,
 		incrementAnsweredCountStmt: q.incrementAnsweredCountStmt,
 		sendAnswersStmt:            q.sendAnswersStmt,

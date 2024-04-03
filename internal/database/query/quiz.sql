@@ -18,3 +18,8 @@ WHERE id = $1;
 UPDATE "quiz"
 SET answered = answered + 1
 WHERE id = $1;
+
+-- name: GetUserQuiz :many
+SELECT title, question_no, start_at, end_at
+FROM "quiz"
+WHERE "user_id" = $1;

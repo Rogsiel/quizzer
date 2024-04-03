@@ -10,6 +10,10 @@ RETURNING *;
 SELECT * FROM "user"
 WHERE "id" = $1 LIMIT 1;
 
+-- name: GetUserUsername :many
+SELECT id, name FROM "user"
+WHERE name ILIKE $1;
+
 -- name: GetUsers :many
 SELECT * FROM "user"
 ORDER BY "id"
