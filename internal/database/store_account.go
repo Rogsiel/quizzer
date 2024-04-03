@@ -51,6 +51,32 @@ func (store *Store) GetUserTx(ctx context.Context, arg GetUserTxParams) (UserTxR
 	return user, err
 }
 
+type GetUserByNameTxParams struct {
+	Name	string	`json:"name"`
+}
+
+type GetUserByNameTxResult struct {
+	IDs		[]int64		`json:"ids"`
+	Names	[]string	`json:"names"`
+}
+
+func (store *Store) GetUserByNameTx(ctx context.Context, arg GetUserByNameTxParams) (GetUserByNameTxResult, error) {
+	var SearchResult GetUserByNameTxResult
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		UserList, err := q.GetUserUsername(ctx, arg.Name)
+		if err != nil {
+			return err
+		}
+		for i := 0; i < len(UserList); i++ {
+			SearchResult.IDs = append(SearchResult.IDs, UserList[i].ID)
+			SearchResult.Names = append(SearchResult.Names, UserList[i].Name)
+		}
+		return nil	
+	})
+	return SearchResult, err
+}
+
 type GetUsersTxParams struct {
 	Limit	int32	`json:"limit"`
 	Offset	int32	`json:"offset"`

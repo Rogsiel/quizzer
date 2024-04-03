@@ -61,6 +61,29 @@ func (store *Store) GetQuizTx(ctx context.Context, id int64) (Quiz, error) {
 	return quiz, err
 }
 
+type GetUserQuizTxParams struct{
+	ID	int64	`json:"id"`
+}
+
+type GetUserQuizTxResult struct {
+	QuizInfo	[]GetUserQuizRow
+}
+
+func (store *Store) GetUserQuiz(ctx context.Context, arg GetUserQuizTxParams) (GetUserQuizTxResult, error) {
+	var Quizes GetUserQuizTxResult
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+		
+		Quizes.QuizInfo, err = q.GetUserQuiz(ctx, arg.ID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return Quizes, err
+}
+
 func (store *Store) GetCorrectAnswersTx(ctx context.Context, QuizID int64) ([]int32, error) {
 	var Answers []int32
 
