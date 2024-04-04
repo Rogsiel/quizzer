@@ -92,6 +92,47 @@ func (q *Queries) GetQuiz(ctx context.Context, id int64) (Quiz, error) {
 	return i, err
 }
 
+const getUserQuiz = `-- name: GetUserQuiz :many
+SELECT title, question_no, start_at, end_at
+FROM "quiz"
+WHERE "user_id" = $1
+`
+
+type GetUserQuizRow struct {
+	Title      string       `json:"title"`
+	QuestionNo int32        `json:"question_no"`
+	StartAt    time.Time    `json:"start_at"`
+	EndAt      sql.NullTime `json:"end_at"`
+}
+
+func (q *Queries) GetUserQuiz(ctx context.Context, userID int64) ([]GetUserQuizRow, error) {
+	rows, err := q.query(ctx, q.getUserQuizStmt, getUserQuiz, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserQuizRow
+	for rows.Next() {
+		var i GetUserQuizRow
+		if err := rows.Scan(
+			&i.Title,
+			&i.QuestionNo,
+			&i.StartAt,
+			&i.EndAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const incrementAnsweredCount = `-- name: IncrementAnsweredCount :exec
 UPDATE "quiz"
 SET answered = answered + 1

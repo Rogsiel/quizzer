@@ -62,6 +62,39 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
+const getUserUsername = `-- name: GetUserUsername :many
+SELECT id, name FROM "user"
+WHERE name ILIKE $1
+`
+
+type GetUserUsernameRow struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) GetUserUsername(ctx context.Context, name string) ([]GetUserUsernameRow, error) {
+	rows, err := q.query(ctx, q.getUserUsernameStmt, getUserUsername, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserUsernameRow
+	for rows.Next() {
+		var i GetUserUsernameRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUsers = `-- name: GetUsers :many
 SELECT id, name, email, created_at FROM "user"
 ORDER BY "id"
