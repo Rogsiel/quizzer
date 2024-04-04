@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,12 +19,12 @@ func (server *Server) createAccount(ctx *gin.Context) {
         ctx.JSON(http.StatusBadRequest, errorResponse(err))
 	return
     }
-    arg := db.CreateUserParams{
+    arg := db.SignupTxParams{
 	Name: req.Name,
 	Email: req.Email,
     } 
 
-    account, err := server.store.CreateUser(ctx, arg)
+    account, err := server.store.SignupTx(ctx, arg)
     if err != nil {
 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	return
@@ -32,25 +33,30 @@ func (server *Server) createAccount(ctx *gin.Context) {
     ctx.JSON(http.StatusOK, account)
 }
 
-type getAccountReq struct{
-    ID	int64	`json:"name" binding:"required"`
+type getUserQuizListReq struct{
+    ID    int64  `uri:"id" binding:"required"`
 }
 
-func (server *Server) getAccount(ctx *gin.Context) {
-    var req getAccountReq
-    if err := ctx.ShouldBindJSON(&req); err != nil {
+func (server *Server) getUserQuizList(ctx *gin.Context) {
+    var req getUserQuizListReq
+    if err := ctx.ShouldBindUri(&req); err != nil {
 	ctx.JSON(http.StatusBadRequest, errorResponse(err))
 	return
     }
-    arg := db.GetUserTxParams{
+    arg := db.GetUserQuizTxParams{
 	ID: req.ID,
     }
 
-    account, err := server.store.GetUser(ctx,arg.ID)
+    userQuizList, err := server.store.GetUserQuizTx(ctx,arg)
     if err != nil {
+	if err == sql.ErrNoRows {
+	    ctx.JSON(http.StatusNotFound, errorResponse(err))
+	    return
+	}
+
 	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	return
     }
 
-    ctx.JSON(http.StatusOK, account)
+    ctx.JSON(http.StatusOK, userQuizList)
 }
