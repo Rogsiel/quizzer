@@ -3,19 +3,18 @@ package main
 import (
 	"database/sql"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
 	db "github.com/rogsiel/quizzer/internal/database"
 	"github.com/rogsiel/quizzer/internal/service/server"
+	"github.com/rogsiel/quizzer/internal/util"
 )
 
 func main() {
-    err := godotenv.Load()
+    config, err := util.LoadConfig(".")
     if err != nil {
 	log.Fatal("Can't load environment variables:", err)
     }
-    conn, err := sql.Open(os.Getenv("dbDriver"), os.Getenv("dbSource"))
+    conn, err := sql.Open(config.DBDriver, config.DBSource)
     if err != nil {
 	log.Fatal("Can't connect to Database:", err)
     }
@@ -23,7 +22,7 @@ func main() {
     store := db.NewStore(conn)
     server := server.NewServer(store)
 
-    err = server.Start(os.Getenv("serverAddress"))
+    err = server.Start(config.ServerAddress)
     if err != nil {
 	log.Fatal("can't start server:", err)
     }
