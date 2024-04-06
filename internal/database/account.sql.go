@@ -15,7 +15,7 @@ INSERT INTO "user" (
 ) VALUES (
   $1, $2
 )
-RETURNING id, name, email, created_at
+RETURNING id, name, user_name, email, hashed_password, password_changed_at, created_at
 `
 
 type CreateUserParams struct {
@@ -29,7 +29,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.UserName,
 		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -46,7 +49,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, created_at FROM "user"
+SELECT id, name, user_name, email, hashed_password, password_changed_at, created_at FROM "user"
 WHERE "id" = $1 LIMIT 1
 `
 
@@ -56,7 +59,10 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.UserName,
 		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -96,7 +102,7 @@ func (q *Queries) GetUserUsername(ctx context.Context, name string) ([]GetUserUs
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, name, email, created_at FROM "user"
+SELECT id, name, user_name, email, hashed_password, password_changed_at, created_at FROM "user"
 ORDER BY "id"
 LIMIT $1
 OFFSET $2
@@ -119,7 +125,10 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.UserName,
 			&i.Email,
+			&i.HashedPassword,
+			&i.PasswordChangedAt,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -139,7 +148,7 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE "user"
 SET name = $2
 WHERE id = $1
-RETURNING id, name, email, created_at
+RETURNING id, name, user_name, email, hashed_password, password_changed_at, created_at
 `
 
 type UpdateUserParams struct {
@@ -153,7 +162,10 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.UserName,
 		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 		&i.CreatedAt,
 	)
 	return i, err
