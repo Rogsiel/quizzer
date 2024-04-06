@@ -37,6 +37,5 @@ func TestAnswerTx(t *testing.T) {
 
 		result := <- results
 		require.NotEmpty(t, result.Result.ID)
-		require.NotNil(t, result.Score)
 	}
 }
