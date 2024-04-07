@@ -45,9 +45,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserQuizStmt, err = db.PrepareContext(ctx, getUserQuiz); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserQuiz: %w", err)
 	}
-	if q.getUserUsernameStmt, err = db.PrepareContext(ctx, getUserUsername); err != nil {
-		return nil, fmt.Errorf("error preparing query GetUserUsername: %w", err)
-	}
 	if q.getUsersStmt, err = db.PrepareContext(ctx, getUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUsers: %w", err)
 	}
@@ -57,11 +54,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.sendAnswersStmt, err = db.PrepareContext(ctx, sendAnswers); err != nil {
 		return nil, fmt.Errorf("error preparing query SendAnswers: %w", err)
 	}
+	if q.updatePasswordStmt, err = db.PrepareContext(ctx, updatePassword); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdatePassword: %w", err)
+	}
 	if q.updateScoreStmt, err = db.PrepareContext(ctx, updateScore); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateScore: %w", err)
-	}
-	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
-		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
 	}
 	return &q, nil
 }
@@ -103,11 +100,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserQuizStmt: %w", cerr)
 		}
 	}
-	if q.getUserUsernameStmt != nil {
-		if cerr := q.getUserUsernameStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getUserUsernameStmt: %w", cerr)
-		}
-	}
 	if q.getUsersStmt != nil {
 		if cerr := q.getUsersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUsersStmt: %w", cerr)
@@ -123,14 +115,14 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing sendAnswersStmt: %w", cerr)
 		}
 	}
+	if q.updatePasswordStmt != nil {
+		if cerr := q.updatePasswordStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updatePasswordStmt: %w", cerr)
+		}
+	}
 	if q.updateScoreStmt != nil {
 		if cerr := q.updateScoreStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateScoreStmt: %w", cerr)
-		}
-	}
-	if q.updateUserStmt != nil {
-		if cerr := q.updateUserStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing updateUserStmt: %w", cerr)
 		}
 	}
 	return err
@@ -179,12 +171,11 @@ type Queries struct {
 	getQuizStmt                *sql.Stmt
 	getUserStmt                *sql.Stmt
 	getUserQuizStmt            *sql.Stmt
-	getUserUsernameStmt        *sql.Stmt
 	getUsersStmt               *sql.Stmt
 	incrementAnsweredCountStmt *sql.Stmt
 	sendAnswersStmt            *sql.Stmt
+	updatePasswordStmt         *sql.Stmt
 	updateScoreStmt            *sql.Stmt
-	updateUserStmt             *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -198,11 +189,10 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getQuizStmt:                q.getQuizStmt,
 		getUserStmt:                q.getUserStmt,
 		getUserQuizStmt:            q.getUserQuizStmt,
-		getUserUsernameStmt:        q.getUserUsernameStmt,
 		getUsersStmt:               q.getUsersStmt,
 		incrementAnsweredCountStmt: q.incrementAnsweredCountStmt,
 		sendAnswersStmt:            q.sendAnswersStmt,
+		updatePasswordStmt:         q.updatePasswordStmt,
 		updateScoreStmt:            q.updateScoreStmt,
-		updateUserStmt:             q.updateUserStmt,
 	}
 }
