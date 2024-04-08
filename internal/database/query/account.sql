@@ -1,31 +1,29 @@
 -- name: CreateUser :one
 INSERT INTO "user" (
-  name, email
+  name, 
+  email, 
+  hashed_password
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 )
 RETURNING *;
 
 -- name: GetUser :one
 SELECT * FROM "user"
-WHERE "id" = $1 LIMIT 1;
-
--- name: GetUserUsername :many
-SELECT id, name FROM "user"
-WHERE name ILIKE $1;
+WHERE "name" = $1 LIMIT 1;
 
 -- name: GetUsers :many
 SELECT * FROM "user"
-ORDER BY "id"
+ORDER BY "name"
 LIMIT $1
 OFFSET $2;
 
--- name: UpdateUser :one
+-- name: UpdatePassword :one
 UPDATE "user"
-SET name = $2
-WHERE id = $1
+SET hashed_password = $2
+WHERE name = $1
 RETURNING *;
 
 -- name: DeleteUser :exec
 DELETE FROM "user"
-WHERE id = $1;
+WHERE name = $1;
