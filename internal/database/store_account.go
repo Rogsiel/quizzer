@@ -8,7 +8,6 @@ import (
 type SignupTxParams struct{
 	Name	string	`json:"name"`
 	Email	string	`json:"email"`
-	HashedPassword	string	`json:"hashed_password"`
 }
 
 type UserTxResult struct{
@@ -24,7 +23,6 @@ func (store *Store) SignupTx(ctx context.Context, arg SignupTxParams) (UserTxRes
 		user.User, err = q.CreateUser(ctx, CreateUserParams{
 			Name: arg.Name,
 			Email: arg.Email,
-			HashedPassword: arg.HashedPassword,
 		})
 		if err != nil {
 			return err
@@ -35,7 +33,7 @@ func (store *Store) SignupTx(ctx context.Context, arg SignupTxParams) (UserTxRes
 }
 
 type GetUserTxParams struct{
-	Name	string	`json:"name"`
+	ID	int64	`json:"id"`
 }
 
 func (store *Store) GetUserTx(ctx context.Context, arg GetUserTxParams) (UserTxResult, error) {
@@ -44,13 +42,39 @@ func (store *Store) GetUserTx(ctx context.Context, arg GetUserTxParams) (UserTxR
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		user.User, err = q.GetUser(ctx, arg.Name)
+		user.User, err = q.GetUser(ctx, arg.ID)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
 	return user, err
+}
+
+type GetUserByNameTxParams struct {
+	Name	string	`json:"name"`
+}
+
+type GetUserByNameTxResult struct {
+	IDs		[]int64		`json:"ids"`
+	Names	[]string	`json:"names"`
+}
+
+func (store *Store) GetUserByNameTx(ctx context.Context, arg GetUserByNameTxParams) (GetUserByNameTxResult, error) {
+	var SearchResult GetUserByNameTxResult
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		UserList, err := q.GetUserUsername(ctx, arg.Name)
+		if err != nil {
+			return err
+		}
+		for i := 0; i < len(UserList); i++ {
+			SearchResult.IDs = append(SearchResult.IDs, UserList[i].ID)
+			SearchResult.Names = append(SearchResult.Names, UserList[i].Name)
+		}
+		return nil	
+	})
+	return SearchResult, err
 }
 
 type GetUsersTxParams struct {
@@ -78,20 +102,20 @@ func (store *Store) GetUsersTx(ctx context.Context, arg GetUsersTxParams) (GetUs
 	return Users, err
 }
 
-type UpdatePasswordTxParams struct {
-	Name				string	`json:"name"`
-	NewHashedPassword	string	`json:"password"`
+type UpdateUserTxParams struct {
+	ID		int64	`json:"id"`
+	NewName	string	`json:"name"`
 }
 
-func (store *Store) UpdatePasswordTx(ctx context.Context, arg UpdatePasswordTxParams) (UserTxResult, error) {
+func (store *Store) UpdateUserTx(ctx context.Context, arg UpdateUserTxParams) (UserTxResult, error) {
 	var UpdatedUser UserTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		UpdatedUser.User, err = q.UpdatePassword(ctx, UpdatePasswordParams{
-			Name: arg.Name,
-			HashedPassword: arg.NewHashedPassword,
+		UpdatedUser.User, err = q.UpdateUser(ctx, UpdateUserParams{
+			ID: arg.ID,
+			Name: arg.NewName,
 		})
 		if err != nil {
 			return err
@@ -101,11 +125,11 @@ func (store *Store) UpdatePasswordTx(ctx context.Context, arg UpdatePasswordTxPa
 	return UpdatedUser, err
 }
 
-type DeleteUserTxParams string
+type DeleteUserTxParams int64
 
 func (store *Store) DeleteUserTx(ctx context.Context, arg DeleteUserTxParams) (error) {
 	err := store.execTx(ctx, func(q *Queries) error {
-		err := q.DeleteUser(ctx, string(arg))
+		err := q.DeleteUser(ctx, int64(arg))
 		if err != nil {
 			return err
 		}
