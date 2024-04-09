@@ -1,6 +1,6 @@
 -- name: CreateUser :one
 INSERT INTO "user" (
-  name, 
+  user_name, 
   email, 
   hashed_password
 ) VALUES (
@@ -10,20 +10,20 @@ RETURNING *;
 
 -- name: GetUser :one
 SELECT * FROM "user"
-WHERE "name" = $1 LIMIT 1;
+WHERE "user_name" = $1 LIMIT 1;
 
 -- name: GetUsers :many
-SELECT * FROM "user"
-ORDER BY "name"
+SELECT "id", "user_name" FROM "user"
+ORDER BY "user_name"
 LIMIT $1
 OFFSET $2;
 
 -- name: UpdatePassword :one
 UPDATE "user"
-SET hashed_password = $2
-WHERE name = $1
+SET hashed_password = $2, password_changed_at = GETDATE()
+WHERE user_name = $1
 RETURNING *;
 
 -- name: DeleteUser :exec
 DELETE FROM "user"
-WHERE name = $1;
+WHERE user_name = $1;
