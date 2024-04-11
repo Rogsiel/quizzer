@@ -9,6 +9,16 @@ services:
       POSTGRES_DB: quizzer
       POSTGRES_USER: root
       POSTGRES_PASSWORD: secret
+  migrate:
+    container_name: quizzer-migrate
+    image: migrate/migrate
+    volumes:
+        - ./internal/database/migration:/migrations
+    command: ["-path", "/migrations", "-database",  "postgresql://root:secret@quizzer-db:5432/quizzer?sslmode=disable", "up"]
+    depends_on:
+      - db
+    links: 
+        - db
   api:
     container_name: quizzer-api
     image: quizzer/api
