@@ -12,6 +12,7 @@ import (
 
 type CreateQuizTxParams struct{
 	UserID		int64           `json:"user_id"`
+	UserName	string			`json:"user_name"`
 	Title		string          `json:"title"`
 	QuestionNo	int32           `json:"question_no"`
 	StartAt		time.Time       `json:"start_at"`
@@ -34,6 +35,7 @@ func (store *Store) CreateQuizTx(ctx context.Context, arg CreateQuizTxParams) (C
 		}
 		Quiz.Quiz, err = q.CreateQuiz(ctx, CreateQuizParams{
 			UserID: arg.UserID,
+			UserName: arg.UserName,
 			Title: arg.Title,
 			QuestionNo: arg.QuestionNo,
 			StartAt: arg.StartAt,

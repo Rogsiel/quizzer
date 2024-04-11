@@ -13,6 +13,7 @@ import (
 type Quiz struct {
 	ID         int64           `json:"id"`
 	UserID     int64           `json:"user_id"`
+	UserName   string          `json:"user_name"`
 	Title      string          `json:"title"`
 	QuestionNo int32           `json:"question_no"`
 	StartAt    time.Time       `json:"start_at"`
@@ -26,6 +27,7 @@ type Result struct {
 	ID        int64     `json:"id"`
 	QuizID    int64     `json:"quiz_id"`
 	UserID    int64     `json:"user_id"`
+	UserName  string    `json:"user_name"`
 	SentAt    time.Time `json:"sent_at"`
 	Score     int32     `json:"score"`
 	Responses []int32   `json:"responses"`
