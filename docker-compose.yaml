@@ -6,7 +6,7 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: fueld
+      POSTGRES_DB: quizzer
       POSTGRES_USER: root
       POSTGRES_PASSWORD: secret
   api:
