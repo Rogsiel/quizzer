@@ -13,7 +13,7 @@ var (
 )
 type Payload struct {
     ID		uuid.UUID   `json:"id"`
-    UserName    string	    `json:"name"`
+    UserName    string	    `json:"user_name"`
     IssuedAt	time.Time   `json:"issued_at"`
     ExpiredAt	time.Time   `json:"expired_at"`
 }

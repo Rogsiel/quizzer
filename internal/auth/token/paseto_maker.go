@@ -39,7 +39,7 @@ func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (
     maker.paseto.SetIssuedAt(payload.IssuedAt)
     maker.paseto.SetExpiration(payload.ExpiredAt)
     maker.paseto.SetString("id", payload.ID.String())
-    maker.paseto.SetString("name", payload.UserName)
+    maker.paseto.SetString("user_name", payload.UserName)
     return maker.paseto.V4Encrypt(maker.symmetricKey, nil), nil
 }
 func (maker *PasetoMaker) VerifyToken(token string) (*Payload, error){
@@ -61,7 +61,7 @@ func (maker *PasetoMaker) VerifyToken(token string) (*Payload, error){
     if err != nil {
     	return nil, ErrorInvalidToken
     }
-    payload.UserName, err = parsedToken.GetString("name")
+    payload.UserName, err = parsedToken.GetString("user_name")
     if err != nil {
     	return nil, ErrorInvalidToken
     }
