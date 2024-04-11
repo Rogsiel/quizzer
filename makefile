@@ -17,4 +17,7 @@ test:
 server:
 	go run ./cmd//quizzer/main.go
 
+build:
+	@go build -o bin/main cmd/quizzer/main.go 
+
 .PHONY:postgres createdb dropdb migrateup migratedown sqlc
