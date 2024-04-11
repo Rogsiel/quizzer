@@ -17,8 +17,6 @@ services:
     command: ["-path", "/migrations", "-database",  "postgresql://root:secret@quizzer-db:5432/quizzer?sslmode=disable", "up"]
     depends_on:
       - db
-    links: 
-        - db
   api:
     container_name: quizzer-api
     image: quizzer/api
