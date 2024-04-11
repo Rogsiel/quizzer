@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-    config, err := config.LoadConfig(".")
+    config, err := config.LoadConfig("/etc/quizzer/api")
     if err != nil {
 	log.Fatal("Can't load environment variables:", err)
     }
