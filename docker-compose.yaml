@@ -1,0 +1,27 @@
+services:
+  db:
+    container_name: quizzer-db
+    image: registry.docker.ir/postgres:12-alpine
+    restart: always
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: fueld
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
+  api:
+    container_name: quizzer-api
+    image: quizzer/api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - db
+
+volumes:
+  db:
+
+networks:
+  nginx-proxy:
+    external: true
