@@ -16,9 +16,10 @@ func calculateScore(responses []int32, correctAnswers []int32) int32 {
 }
 
 type AnswerTxParams struct{
-	QuizID int64 `json:"quiz_id"`
-	UserID int64 `json:"user_id"`
-	Responses []int32 `json:"responses"`
+	QuizID		int64	`json:"quiz_id"`
+	UserID		int64	`json:"user_id"`
+	UserName	string	`json:"user_name"`
+	Responses	[]int32	`json:"responses"`
 }
 
 type AnswerTxResult struct{
@@ -39,6 +40,7 @@ func (store *Store) AnswerTx(ctx context.Context, arg AnswerTxParams) (AnswerTxR
 		Result.Result, err = q.SendAnswers(ctx, SendAnswersParams{
 			QuizID: arg.QuizID,
 			UserID: arg.UserID,
+			UserName: arg.UserName,
 			SentAt: time.Now(),
 			Score: score,
 			Responses: arg.Responses,

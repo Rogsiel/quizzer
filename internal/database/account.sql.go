@@ -11,27 +11,27 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO "user" (
-  name, 
+  user_name, 
   email, 
   hashed_password
 ) VALUES (
   $1, $2, $3
 )
-RETURNING id, name, email, hashed_password, password_changed_at, created_at
+RETURNING id, user_name, email, hashed_password, password_changed_at, created_at
 `
 
 type CreateUserParams struct {
-	Name           string `json:"name"`
+	UserName       string `json:"user_name"`
 	Email          string `json:"email"`
 	HashedPassword string `json:"hashed_password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.queryRow(ctx, q.createUserStmt, createUser, arg.Name, arg.Email, arg.HashedPassword)
+	row := q.queryRow(ctx, q.createUserStmt, createUser, arg.UserName, arg.Email, arg.HashedPassword)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.UserName,
 		&i.Email,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
@@ -42,25 +42,25 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM "user"
-WHERE name = $1
+WHERE user_name = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, name string) error {
-	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, name)
+func (q *Queries) DeleteUser(ctx context.Context, userName string) error {
+	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, userName)
 	return err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, hashed_password, password_changed_at, created_at FROM "user"
-WHERE "name" = $1 LIMIT 1
+SELECT id, user_name, email, hashed_password, password_changed_at, created_at FROM "user"
+WHERE "user_name" = $1 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
-	row := q.queryRow(ctx, q.getUserStmt, getUser, name)
+func (q *Queries) GetUser(ctx context.Context, userName string) (User, error) {
+	row := q.queryRow(ctx, q.getUserStmt, getUser, userName)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.UserName,
 		&i.Email,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,
@@ -70,8 +70,8 @@ func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, name, email, hashed_password, password_changed_at, created_at FROM "user"
-ORDER BY "name"
+SELECT "id", "user_name" FROM "user"
+ORDER BY "user_name"
 LIMIT $1
 OFFSET $2
 `
@@ -81,23 +81,21 @@ type GetUsersParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error) {
+type GetUsersRow struct {
+	ID       int64  `json:"id"`
+	UserName string `json:"user_name"`
+}
+
+func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersRow, error) {
 	rows, err := q.query(ctx, q.getUsersStmt, getUsers, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []GetUsersRow
 	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Email,
-			&i.HashedPassword,
-			&i.PasswordChangedAt,
-			&i.CreatedAt,
-		); err != nil {
+		var i GetUsersRow
+		if err := rows.Scan(&i.ID, &i.UserName); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -113,22 +111,22 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 
 const updatePassword = `-- name: UpdatePassword :one
 UPDATE "user"
-SET hashed_password = $2
-WHERE name = $1
-RETURNING id, name, email, hashed_password, password_changed_at, created_at
+SET hashed_password = $2, password_changed_at = GETDATE()
+WHERE user_name = $1
+RETURNING id, user_name, email, hashed_password, password_changed_at, created_at
 `
 
 type UpdatePasswordParams struct {
-	Name           string `json:"name"`
+	UserName       string `json:"user_name"`
 	HashedPassword string `json:"hashed_password"`
 }
 
 func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) (User, error) {
-	row := q.queryRow(ctx, q.updatePasswordStmt, updatePassword, arg.Name, arg.HashedPassword)
+	row := q.queryRow(ctx, q.updatePasswordStmt, updatePassword, arg.UserName, arg.HashedPassword)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.UserName,
 		&i.Email,
 		&i.HashedPassword,
 		&i.PasswordChangedAt,

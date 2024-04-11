@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/rogsiel/quizzer/config"
 	db "github.com/rogsiel/quizzer/internal/database"
 	"github.com/rogsiel/quizzer/internal/service/server"
-	"github.com/rogsiel/quizzer/internal/util"
 )
 
 func main() {
-    config, err := util.LoadConfig(".")
+    config, err := config.LoadConfig(".")
     if err != nil {
 	log.Fatal("Can't load environment variables:", err)
     }
@@ -20,7 +20,10 @@ func main() {
     }
 
     store := db.NewStore(conn)
-    server := server.NewServer(store)
+    server, err := server.NewServer(config, *store)
+    if err != nil {
+	log.Fatal("can't initiate server:", err)
+    }
 
     err = server.Start(config.ServerAddress)
     if err != nil {

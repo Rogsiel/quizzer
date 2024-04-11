@@ -14,15 +14,16 @@ import (
 
 const sendAnswers = `-- name: SendAnswers :one
 INSERT INTO "result" (
-  quiz_id, user_id, sent_at, score, responses
+  quiz_id, user_id, user_name, sent_at, score, responses
 ) VALUES (
-  $1, $2, $3, $4, $5
-) RETURNING id, quiz_id, user_id, sent_at, score, responses
+  $1, $2, $3, $4, $5, $6
+) RETURNING id, quiz_id, user_id, user_name, sent_at, score, responses
 `
 
 type SendAnswersParams struct {
 	QuizID    int64     `json:"quiz_id"`
 	UserID    int64     `json:"user_id"`
+	UserName  string    `json:"user_name"`
 	SentAt    time.Time `json:"sent_at"`
 	Score     int32     `json:"score"`
 	Responses []int32   `json:"responses"`
@@ -32,6 +33,7 @@ func (q *Queries) SendAnswers(ctx context.Context, arg SendAnswersParams) (Resul
 	row := q.queryRow(ctx, q.sendAnswersStmt, sendAnswers,
 		arg.QuizID,
 		arg.UserID,
+		arg.UserName,
 		arg.SentAt,
 		arg.Score,
 		pq.Array(arg.Responses),
@@ -41,6 +43,7 @@ func (q *Queries) SendAnswers(ctx context.Context, arg SendAnswersParams) (Resul
 		&i.ID,
 		&i.QuizID,
 		&i.UserID,
+		&i.UserName,
 		&i.SentAt,
 		&i.Score,
 		pq.Array(&i.Responses),

@@ -2,30 +2,42 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 
 type SignupTxParams struct{
-	Name	string	`json:"name"`
-	Email	string	`json:"email"`
+	UserName		string	`json:"user_name"`
+	Email			string	`json:"email"`
+	HashedPassword	string	`json:"hashed_password"`
 }
 
 type UserTxResult struct{
-	User	User	`json:"user"`
+	ID					int64		`json:"id"`
+	UserName			string		`json:"user_name"`
+	Email				string		`json:"email"`
+	CreatedAt			time.Time	`json:"created_at"`
+	PasswordChangedAt	time.Time	`json:"password_changed_at"`
 }
 
 func (store *Store) SignupTx(ctx context.Context, arg SignupTxParams) (UserTxResult, error) {
 	var user UserTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
-		var err error
-
-		user.User, err = q.CreateUser(ctx, CreateUserParams{
-			Name: arg.Name,
+		result, err := q.CreateUser(ctx, CreateUserParams{
+			UserName: arg.UserName,
 			Email: arg.Email,
+			HashedPassword: arg.HashedPassword,
 		})
 		if err != nil {
 			return err
+		}
+		user = UserTxResult{
+			ID: result.ID,
+			UserName: result.UserName,
+			Email: result.Email,
+			CreatedAt: result.CreatedAt,
+			PasswordChangedAt: result.PasswordChangedAt,
 		}
 		return nil
 	})
@@ -33,48 +45,27 @@ func (store *Store) SignupTx(ctx context.Context, arg SignupTxParams) (UserTxRes
 }
 
 type GetUserTxParams struct{
-	ID	int64	`json:"id"`
+	UserName	string	`json:"user_name"`
 }
 
 func (store *Store) GetUserTx(ctx context.Context, arg GetUserTxParams) (UserTxResult, error) {
 	var user UserTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
-		var err error
-
-		user.User, err = q.GetUser(ctx, arg.ID)
+		result, err := q.GetUser(ctx, arg.UserName)
 		if err != nil {
 			return err
+		}
+		user = UserTxResult{
+			ID: result.ID,
+			UserName: result.UserName,
+			Email: result.Email,
+			CreatedAt: result.CreatedAt,
+			PasswordChangedAt: result.PasswordChangedAt,
 		}
 		return nil
 	})
 	return user, err
-}
-
-type GetUserByNameTxParams struct {
-	Name	string	`json:"name"`
-}
-
-type GetUserByNameTxResult struct {
-	IDs		[]int64		`json:"ids"`
-	Names	[]string	`json:"names"`
-}
-
-func (store *Store) GetUserByNameTx(ctx context.Context, arg GetUserByNameTxParams) (GetUserByNameTxResult, error) {
-	var SearchResult GetUserByNameTxResult
-
-	err := store.execTx(ctx, func(q *Queries) error {
-		UserList, err := q.GetUserUsername(ctx, arg.Name)
-		if err != nil {
-			return err
-		}
-		for i := 0; i < len(UserList); i++ {
-			SearchResult.IDs = append(SearchResult.IDs, UserList[i].ID)
-			SearchResult.Names = append(SearchResult.Names, UserList[i].Name)
-		}
-		return nil	
-	})
-	return SearchResult, err
 }
 
 type GetUsersTxParams struct {
@@ -82,7 +73,7 @@ type GetUsersTxParams struct {
 	Offset	int32	`json:"offset"`
 }
 
-type GetUsersTxResult []User
+type GetUsersTxResult []GetUsersRow
 
 func (store *Store) GetUsersTx(ctx context.Context, arg GetUsersTxParams) (GetUsersTxResult, error) {
 	var Users GetUsersTxResult
@@ -102,34 +93,38 @@ func (store *Store) GetUsersTx(ctx context.Context, arg GetUsersTxParams) (GetUs
 	return Users, err
 }
 
-type UpdateUserTxParams struct {
-	ID		int64	`json:"id"`
-	NewName	string	`json:"name"`
+type UpdatePasswordTxParams struct {
+	UserName       string `json:"user_name"`
+	HashedPassword string `json:"hashed_password"`
 }
 
-func (store *Store) UpdateUserTx(ctx context.Context, arg UpdateUserTxParams) (UserTxResult, error) {
-	var UpdatedUser UserTxResult
+func (store *Store) UpdatePasswordTx(ctx context.Context, arg UpdatePasswordTxParams) (UserTxResult, error) {
+	var updatedUser UserTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
-		var err error
-
-		UpdatedUser.User, err = q.UpdateUser(ctx, UpdateUserParams{
-			ID: arg.ID,
-			Name: arg.NewName,
+		result, err := q.UpdatePassword(ctx, UpdatePasswordParams{
+			UserName: arg.UserName,
+			HashedPassword: arg.HashedPassword,
 		})
 		if err != nil {
 			return err
 		}
+		updatedUser = UserTxResult{
+			ID: result.ID,
+			UserName: result.UserName,
+			Email: result.Email,
+			PasswordChangedAt: result.PasswordChangedAt,
+		}
 		return nil
 	})
-	return UpdatedUser, err
-}
+	return updatedUser, err
+} 
 
-type DeleteUserTxParams int64
+type DeleteUserTxParams string
 
 func (store *Store) DeleteUserTx(ctx context.Context, arg DeleteUserTxParams) (error) {
 	err := store.execTx(ctx, func(q *Queries) error {
-		err := q.DeleteUser(ctx, int64(arg))
+		err := q.DeleteUser(ctx, string(arg))
 		if err != nil {
 			return err
 		}

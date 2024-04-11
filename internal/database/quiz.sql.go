@@ -16,13 +16,14 @@ import (
 
 const createQuiz = `-- name: CreateQuiz :one
 INSERT INTO "quiz" (
-  user_id, title, question_no, start_at, end_at, questions, answers) VALUES 
-($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, user_id, title, question_no, start_at, end_at, questions, answered, answers
+  user_id, user_name, title, question_no, start_at, end_at, questions, answers) VALUES 
+($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, user_id, user_name, title, question_no, start_at, end_at, questions, answered, answers
 `
 
 type CreateQuizParams struct {
 	UserID     int64           `json:"user_id"`
+	UserName   string          `json:"user_name"`
 	Title      string          `json:"title"`
 	QuestionNo int32           `json:"question_no"`
 	StartAt    time.Time       `json:"start_at"`
@@ -34,6 +35,7 @@ type CreateQuizParams struct {
 func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (Quiz, error) {
 	row := q.queryRow(ctx, q.createQuizStmt, createQuiz,
 		arg.UserID,
+		arg.UserName,
 		arg.Title,
 		arg.QuestionNo,
 		arg.StartAt,
@@ -45,6 +47,7 @@ func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) (Quiz, e
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.UserName,
 		&i.Title,
 		&i.QuestionNo,
 		&i.StartAt,
@@ -70,7 +73,7 @@ func (q *Queries) GetCorrectAnswers(ctx context.Context, id int64) ([]int32, err
 }
 
 const getQuiz = `-- name: GetQuiz :one
-SELECT id, user_id, title, question_no, start_at, end_at, questions, answered, answers
+SELECT id, user_id, user_name, title, question_no, start_at, end_at, questions, answered, answers
 FROM "quiz"
 WHERE id = $1
 `
@@ -81,6 +84,7 @@ func (q *Queries) GetQuiz(ctx context.Context, id int64) (Quiz, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.UserName,
 		&i.Title,
 		&i.QuestionNo,
 		&i.StartAt,

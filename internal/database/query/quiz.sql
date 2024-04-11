@@ -5,8 +5,8 @@ WHERE id = $1;
 
 -- name: CreateQuiz :one
 INSERT INTO "quiz" (
-  user_id, title, question_no, start_at, end_at, questions, answers) VALUES 
-($1, $2, $3, $4, $5, $6, $7)
+  user_id, user_name, title, question_no, start_at, end_at, questions, answers) VALUES 
+($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
 -- name: GetCorrectAnswers :one
