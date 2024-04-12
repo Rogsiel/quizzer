@@ -20,7 +20,7 @@ OFFSET $2;
 
 -- name: UpdatePassword :one
 UPDATE "user"
-SET hashed_password = $2, password_changed_at = GETDATE()
+SET hashed_password = $2, password_changed_at = NOW()
 WHERE user_name = $1
 RETURNING *;
 

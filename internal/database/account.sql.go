@@ -111,7 +111,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersR
 
 const updatePassword = `-- name: UpdatePassword :one
 UPDATE "user"
-SET hashed_password = $2, password_changed_at = GETDATE()
+SET hashed_password = $2, password_changed_at = NOW()
 WHERE user_name = $1
 RETURNING id, user_name, email, hashed_password, password_changed_at, created_at
 `
