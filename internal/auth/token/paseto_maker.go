@@ -31,16 +31,16 @@ func NewPasetoMaker(byteKey string) (Maker, error) {
     return maker, nil
 }
 
-func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (string, error){
+func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (string, *Payload, error){
     payload, err := NewPayload(username, duration)
     if err != nil {
-	return "", err
+	return "", payload, err
     }
     maker.paseto.SetIssuedAt(payload.IssuedAt)
     maker.paseto.SetExpiration(payload.ExpiredAt)
     maker.paseto.SetString("id", payload.ID.String())
     maker.paseto.SetString("user_name", payload.UserName)
-    return maker.paseto.V4Encrypt(maker.symmetricKey, nil), nil
+    return maker.paseto.V4Encrypt(maker.symmetricKey, nil), payload, nil
 }
 func (maker *PasetoMaker) VerifyToken(token string) (*Payload, error){
     parser := paseto.NewParser()
