@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Quiz struct {
@@ -31,6 +33,17 @@ type Result struct {
 	SentAt    time.Time `json:"sent_at"`
 	Score     int32     `json:"score"`
 	Responses []int32   `json:"responses"`
+}
+
+type Session struct {
+	ID           uuid.UUID `json:"id"`
+	UserName     string    `json:"user_name"`
+	RefreshToken string    `json:"refresh_token"`
+	UserAgent    string    `json:"user_agent"`
+	ClientIp     string    `json:"client_ip"`
+	IsBlocked    bool      `json:"is_blocked"`
+	CreatedAt    time.Time `json:"created_at"`
+	ExpiresAt    time.Time `json:"expires_at"`
 }
 
 type User struct {

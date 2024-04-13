@@ -27,6 +27,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createQuizStmt, err = db.PrepareContext(ctx, createQuiz); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateQuiz: %w", err)
 	}
+	if q.createSessionStmt, err = db.PrepareContext(ctx, createSession); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateSession: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
@@ -38,6 +41,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getQuizStmt, err = db.PrepareContext(ctx, getQuiz); err != nil {
 		return nil, fmt.Errorf("error preparing query GetQuiz: %w", err)
+	}
+	if q.getSessionStmt, err = db.PrepareContext(ctx, getSession); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSession: %w", err)
 	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
@@ -70,6 +76,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createQuizStmt: %w", cerr)
 		}
 	}
+	if q.createSessionStmt != nil {
+		if cerr := q.createSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createSessionStmt: %w", cerr)
+		}
+	}
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
@@ -88,6 +99,11 @@ func (q *Queries) Close() error {
 	if q.getQuizStmt != nil {
 		if cerr := q.getQuizStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getQuizStmt: %w", cerr)
+		}
+	}
+	if q.getSessionStmt != nil {
+		if cerr := q.getSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSessionStmt: %w", cerr)
 		}
 	}
 	if q.getUserStmt != nil {
@@ -165,10 +181,12 @@ type Queries struct {
 	db                         DBTX
 	tx                         *sql.Tx
 	createQuizStmt             *sql.Stmt
+	createSessionStmt          *sql.Stmt
 	createUserStmt             *sql.Stmt
 	deleteUserStmt             *sql.Stmt
 	getCorrectAnswersStmt      *sql.Stmt
 	getQuizStmt                *sql.Stmt
+	getSessionStmt             *sql.Stmt
 	getUserStmt                *sql.Stmt
 	getUserQuizStmt            *sql.Stmt
 	getUsersStmt               *sql.Stmt
@@ -183,10 +201,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                         tx,
 		tx:                         tx,
 		createQuizStmt:             q.createQuizStmt,
+		createSessionStmt:          q.createSessionStmt,
 		createUserStmt:             q.createUserStmt,
 		deleteUserStmt:             q.deleteUserStmt,
 		getCorrectAnswersStmt:      q.getCorrectAnswersStmt,
 		getQuizStmt:                q.getQuizStmt,
+		getSessionStmt:             q.getSessionStmt,
 		getUserStmt:                q.getUserStmt,
 		getUserQuizStmt:            q.getUserQuizStmt,
 		getUsersStmt:               q.getUsersStmt,
