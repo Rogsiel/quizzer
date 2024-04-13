@@ -1,6 +1,6 @@
 CREATE TABLE "session" (
   "id" uuid PRIMARY KEY NOT NULL,
-  "user_name" varchar UNIQUE NOT NULL,
+  "user_name" varchar NOT NULL,
   "refresh_token" varchar NOT NULL,
   "user_agent" varchar NOT NULL,
   "client_ip" varchar NOT NULL,
