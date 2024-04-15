@@ -8,7 +8,8 @@ func (server *Server) setRouter() {
     router := gin.Default()
     router.POST("/signup", server.createAccount)
     router.POST("login", server.UserLogin)
-    
+    router.POST("/token/renew_access", server.renewAccessToken)
+
     authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
     authRoutes.GET("/user/:user_id", server.getUserQuizList)
