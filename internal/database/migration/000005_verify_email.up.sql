@@ -1,6 +1,6 @@
 CREATE TABLE "verify_email" (
   "id" bigserial PRIMARY KEY,
-  "username" varchar NOT NULL,
+  "user_name" varchar NOT NULL,
   "email" varchar NOT NULL,
   "secret_code" varchar NOT NULL,
   "is_used" bool NOT NULL DEFAULT false,
