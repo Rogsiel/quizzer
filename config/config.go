@@ -13,6 +13,11 @@ type Config struct {
     TokenSymmetricKey	    string		`mapstructure:"TOKEN_SYMMETRIC_KEY"`
     AccessTokenDuration	    time.Duration	`mapstructure:"ACCESS_TOKEN_DURATION"`
     RefreshTokenDuration    time.Duration	`mapstructure:"REFRESH_TOKEN_DURATION"`
+    SMTPAuthAddress	    string		`mapatructure:"SMTP_AUTH_ADDRESS"`
+    SMTPServerAddress	    string		`mapatructure:"SMTP_SERVER_ADDRESS"`
+    EmailSenderName	    string		`mapatructure:"EMAIL_SENDER_NAME"`
+    EmailSenderAddress	    string		`mapatructure:"EMAIL_SENDER_ADDRESS"`
+    EmailSenderPassword	    string		`mapatructure:"EMAIL_SENDER_PASSWORD"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
