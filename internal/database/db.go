@@ -33,6 +33,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
+	if q.createVerifyEmailStmt, err = db.PrepareContext(ctx, createVerifyEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateVerifyEmail: %w", err)
+	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
@@ -84,6 +87,11 @@ func (q *Queries) Close() error {
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
+		}
+	}
+	if q.createVerifyEmailStmt != nil {
+		if cerr := q.createVerifyEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createVerifyEmailStmt: %w", cerr)
 		}
 	}
 	if q.deleteUserStmt != nil {
@@ -183,6 +191,7 @@ type Queries struct {
 	createQuizStmt             *sql.Stmt
 	createSessionStmt          *sql.Stmt
 	createUserStmt             *sql.Stmt
+	createVerifyEmailStmt      *sql.Stmt
 	deleteUserStmt             *sql.Stmt
 	getCorrectAnswersStmt      *sql.Stmt
 	getQuizStmt                *sql.Stmt
@@ -203,6 +212,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		createQuizStmt:             q.createQuizStmt,
 		createSessionStmt:          q.createSessionStmt,
 		createUserStmt:             q.createUserStmt,
+		createVerifyEmailStmt:      q.createVerifyEmailStmt,
 		deleteUserStmt:             q.deleteUserStmt,
 		getCorrectAnswersStmt:      q.getCorrectAnswersStmt,
 		getQuizStmt:                q.getQuizStmt,
