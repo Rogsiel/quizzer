@@ -18,10 +18,15 @@ ORDER BY "user_name"
 LIMIT $1
 OFFSET $2;
 
--- name: UpdatePassword :one
+-- name: UpdatePassword :exec
 UPDATE "user"
 SET hashed_password = $2, password_changed_at = NOW()
-WHERE user_name = $1
+WHERE user_name = $1;
+
+-- name: VerifyEmail :one
+UPDATE "user"
+SET is_email_verified = TRUE
+WHERE email = @email
 RETURNING *;
 
 -- name: DeleteUser :exec

@@ -111,11 +111,10 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersR
 	return items, nil
 }
 
-const updatePassword = `-- name: UpdatePassword :one
+const updatePassword = `-- name: UpdatePassword :exec
 UPDATE "user"
 SET hashed_password = $2, password_changed_at = NOW()
 WHERE user_name = $1
-RETURNING id, user_name, email, is_email_verified, hashed_password, password_changed_at, created_at
 `
 
 type UpdatePasswordParams struct {
@@ -123,8 +122,20 @@ type UpdatePasswordParams struct {
 	HashedPassword string `json:"hashed_password"`
 }
 
-func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) (User, error) {
-	row := q.queryRow(ctx, q.updatePasswordStmt, updatePassword, arg.UserName, arg.HashedPassword)
+func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error {
+	_, err := q.exec(ctx, q.updatePasswordStmt, updatePassword, arg.UserName, arg.HashedPassword)
+	return err
+}
+
+const verifyEmail = `-- name: VerifyEmail :one
+UPDATE "user"
+SET is_email_verified = TRUE
+WHERE email = $1
+RETURNING id, user_name, email, is_email_verified, hashed_password, password_changed_at, created_at
+`
+
+func (q *Queries) VerifyEmail(ctx context.Context, email string) (User, error) {
+	row := q.queryRow(ctx, q.verifyEmailStmt, verifyEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,

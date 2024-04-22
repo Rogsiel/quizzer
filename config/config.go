@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+    OriginHost		    string		`mapstructure:"ORIGIN_HOST"`
     DBDriver		    string		`mapstructure:"DB_DRIVER"`
     DBSource		    string		`mapstructure:"DB_SOURCE"`
     ServerAddress	    string		`mapstructure:"SERVER_ADDRESS"`

@@ -9,6 +9,8 @@ func (server *Server) setRouter() {
     router.POST("/signup", server.createAccount)
     router.POST("login", server.UserLogin)
     router.POST("/token/renew_access", server.renewAccessToken)
+    
+    router.GET("/verify_email/:email/:otp_code/:otp_type", server.emailVerify)
 
     authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
