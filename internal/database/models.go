@@ -12,6 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type Otp struct {
+	ID        int64     `json:"id"`
+	Email     string    `json:"email"`
+	OtpCode   string    `json:"otp_code"`
+	OtpType   string    `json:"otp_type"`
+	IsUsed    bool      `json:"is_used"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiredAt time.Time `json:"expired_at"`
+}
+
 type Quiz struct {
 	ID         int64           `json:"id"`
 	UserID     int64           `json:"user_id"`
@@ -54,14 +64,4 @@ type User struct {
 	HashedPassword    string    `json:"hashed_password"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
-}
-
-type VerifyEmail struct {
-	ID         int64     `json:"id"`
-	UserName   string    `json:"user_name"`
-	Email      string    `json:"email"`
-	SecretCode string    `json:"secret_code"`
-	IsUsed     bool      `json:"is_used"`
-	CreatedAt  time.Time `json:"created_at"`
-	ExpiredAt  time.Time `json:"expired_at"`
 }

@@ -24,6 +24,9 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.createOTPStmt, err = db.PrepareContext(ctx, createOTP); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateOTP: %w", err)
+	}
 	if q.createQuizStmt, err = db.PrepareContext(ctx, createQuiz); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateQuiz: %w", err)
 	}
@@ -33,14 +36,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
-	if q.createVerifyEmailStmt, err = db.PrepareContext(ctx, createVerifyEmail); err != nil {
-		return nil, fmt.Errorf("error preparing query CreateVerifyEmail: %w", err)
-	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
 	if q.getCorrectAnswersStmt, err = db.PrepareContext(ctx, getCorrectAnswers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCorrectAnswers: %w", err)
+	}
+	if q.getOTPStmt, err = db.PrepareContext(ctx, getOTP); err != nil {
+		return nil, fmt.Errorf("error preparing query GetOTP: %w", err)
 	}
 	if q.getQuizStmt, err = db.PrepareContext(ctx, getQuiz); err != nil {
 		return nil, fmt.Errorf("error preparing query GetQuiz: %w", err)
@@ -63,17 +66,28 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.sendAnswersStmt, err = db.PrepareContext(ctx, sendAnswers); err != nil {
 		return nil, fmt.Errorf("error preparing query SendAnswers: %w", err)
 	}
+	if q.updateOTPStmt, err = db.PrepareContext(ctx, updateOTP); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateOTP: %w", err)
+	}
 	if q.updatePasswordStmt, err = db.PrepareContext(ctx, updatePassword); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdatePassword: %w", err)
 	}
 	if q.updateScoreStmt, err = db.PrepareContext(ctx, updateScore); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateScore: %w", err)
 	}
+	if q.verifyEmailStmt, err = db.PrepareContext(ctx, verifyEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query VerifyEmail: %w", err)
+	}
 	return &q, nil
 }
 
 func (q *Queries) Close() error {
 	var err error
+	if q.createOTPStmt != nil {
+		if cerr := q.createOTPStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createOTPStmt: %w", cerr)
+		}
+	}
 	if q.createQuizStmt != nil {
 		if cerr := q.createQuizStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createQuizStmt: %w", cerr)
@@ -89,11 +103,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
 		}
 	}
-	if q.createVerifyEmailStmt != nil {
-		if cerr := q.createVerifyEmailStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing createVerifyEmailStmt: %w", cerr)
-		}
-	}
 	if q.deleteUserStmt != nil {
 		if cerr := q.deleteUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
@@ -102,6 +111,11 @@ func (q *Queries) Close() error {
 	if q.getCorrectAnswersStmt != nil {
 		if cerr := q.getCorrectAnswersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getCorrectAnswersStmt: %w", cerr)
+		}
+	}
+	if q.getOTPStmt != nil {
+		if cerr := q.getOTPStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getOTPStmt: %w", cerr)
 		}
 	}
 	if q.getQuizStmt != nil {
@@ -139,6 +153,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing sendAnswersStmt: %w", cerr)
 		}
 	}
+	if q.updateOTPStmt != nil {
+		if cerr := q.updateOTPStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateOTPStmt: %w", cerr)
+		}
+	}
 	if q.updatePasswordStmt != nil {
 		if cerr := q.updatePasswordStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updatePasswordStmt: %w", cerr)
@@ -147,6 +166,11 @@ func (q *Queries) Close() error {
 	if q.updateScoreStmt != nil {
 		if cerr := q.updateScoreStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateScoreStmt: %w", cerr)
+		}
+	}
+	if q.verifyEmailStmt != nil {
+		if cerr := q.verifyEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing verifyEmailStmt: %w", cerr)
 		}
 	}
 	return err
@@ -188,12 +212,13 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                         DBTX
 	tx                         *sql.Tx
+	createOTPStmt              *sql.Stmt
 	createQuizStmt             *sql.Stmt
 	createSessionStmt          *sql.Stmt
 	createUserStmt             *sql.Stmt
-	createVerifyEmailStmt      *sql.Stmt
 	deleteUserStmt             *sql.Stmt
 	getCorrectAnswersStmt      *sql.Stmt
+	getOTPStmt                 *sql.Stmt
 	getQuizStmt                *sql.Stmt
 	getSessionStmt             *sql.Stmt
 	getUserStmt                *sql.Stmt
@@ -201,20 +226,23 @@ type Queries struct {
 	getUsersStmt               *sql.Stmt
 	incrementAnsweredCountStmt *sql.Stmt
 	sendAnswersStmt            *sql.Stmt
+	updateOTPStmt              *sql.Stmt
 	updatePasswordStmt         *sql.Stmt
 	updateScoreStmt            *sql.Stmt
+	verifyEmailStmt            *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                         tx,
 		tx:                         tx,
+		createOTPStmt:              q.createOTPStmt,
 		createQuizStmt:             q.createQuizStmt,
 		createSessionStmt:          q.createSessionStmt,
 		createUserStmt:             q.createUserStmt,
-		createVerifyEmailStmt:      q.createVerifyEmailStmt,
 		deleteUserStmt:             q.deleteUserStmt,
 		getCorrectAnswersStmt:      q.getCorrectAnswersStmt,
+		getOTPStmt:                 q.getOTPStmt,
 		getQuizStmt:                q.getQuizStmt,
 		getSessionStmt:             q.getSessionStmt,
 		getUserStmt:                q.getUserStmt,
@@ -222,7 +250,9 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUsersStmt:               q.getUsersStmt,
 		incrementAnsweredCountStmt: q.incrementAnsweredCountStmt,
 		sendAnswersStmt:            q.sendAnswersStmt,
+		updateOTPStmt:              q.updateOTPStmt,
 		updatePasswordStmt:         q.updatePasswordStmt,
 		updateScoreStmt:            q.updateScoreStmt,
+		verifyEmailStmt:            q.verifyEmailStmt,
 	}
 }
