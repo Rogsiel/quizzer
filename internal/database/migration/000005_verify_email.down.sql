@@ -1,1 +1,0 @@
-DROP TABLE IF EXISTS "verify_email" CASCADE;
