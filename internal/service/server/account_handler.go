@@ -9,8 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/rogsiel/quizzer/internal/auth"
 	db "github.com/rogsiel/quizzer/internal/database"
-	"github.com/rogsiel/quizzer/internal/service/mail"
-	"github.com/rogsiel/quizzer/internal/service/otp"
 )
 
 type createAccountReq struct {
@@ -58,26 +56,6 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	return
     }
     
-    
-    otp := server.otpManager.NewEmailVerificationOTP(account.Email)
-    
-    err = server.store.CreateOTPTx(ctx, db.CreateOTPTxParams{
-	Email: otp.Email,
-	OtpCode: otp.OtpCode,
-	OtpType: otp.OtpType,
-    })
-    if err != nil {
-	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	return
-    }
-
-    sender := mail.NewEmail()
-    sender.SendWelcomeEmail(mail.NewUserInfo{
-	UserName: account.UserName,
-	Email: account.Email,
-	OtpCode: otp.OtpCode,
-    })
-
     res := newUserResponse(account)
     ctx.JSON(http.StatusOK, res)
 }
@@ -163,54 +141,4 @@ func (server *Server) UserLogin(ctx *gin.Context) {
     }
 
     ctx.JSON(http.StatusOK, res)
-}
-
-type emailVerifyReq struct {
-    Email   string  `uri:"email" binding:"required"`
-    OtpCode string  `uri:"otp_code" binding:"required"`
-    OtpType string  `uri:"otp_type" binding:"required"`
-}
-
-func (server *Server) emailVerify(ctx *gin.Context) {
-    var req emailVerifyReq
-    if err := ctx.ShouldBindUri(&req); err != nil {
-    	ctx.JSON(http.StatusBadRequest, errorResponse(err))
-	return
-    }
-    record, err := server.store.GetOTP(ctx, db.GetOTPParams{
-	Email: req.Email,
-	OtpCode: req.OtpCode,
-	OtpType: req.OtpType,
-    })
-    if err != nil {
-	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	return
-    }
-    otp := otp.OTP{
-	ID: record.ID,
-	Email: record.Email,
-	OtpCode: record.OtpCode,
-	OtpType: record.OtpType,
-	IsUsed: record.IsUsed,
-	CreatedAt: record.CreatedAt,
-	ExpiredAt: record.ExpiredAt,
-    }
-    
-    err = otp.VerifyOTP()
-    if err != nil {
-	ctx.JSON(http.StatusBadRequest, errorResponse(err))
-	return
-    }
-    
-    username, err := server.store.VerifyEmailTx(ctx, db.VerifyEmailTxParams{
-	OtpID: otp.ID,
-	Email: otp.Email,
-	OtpCode: otp.OtpCode,
-    })
-    if err != nil {
-	ctx.JSON(http.StatusBadRequest, errorResponse(err))
-	return
-    }
-    
-    ctx.JSON(http.StatusOK, username)
 }
