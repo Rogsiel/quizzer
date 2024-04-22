@@ -98,27 +98,49 @@ type UpdatePasswordTxParams struct {
 	HashedPassword string `json:"hashed_password"`
 }
 
-func (store *Store) UpdatePasswordTx(ctx context.Context, arg UpdatePasswordTxParams) (UserTxResult, error) {
-	var updatedUser UserTxResult
-
+func (store *Store) UpdatePasswordTx(ctx context.Context, arg UpdatePasswordTxParams) (error) {
 	err := store.execTx(ctx, func(q *Queries) error {
-		result, err := q.UpdatePassword(ctx, UpdatePasswordParams{
+		err := q.UpdatePassword(ctx, UpdatePasswordParams{
 			UserName: arg.UserName,
 			HashedPassword: arg.HashedPassword,
 		})
 		if err != nil {
 			return err
 		}
-		updatedUser = UserTxResult{
-			ID: result.ID,
-			UserName: result.UserName,
-			Email: result.Email,
-			PasswordChangedAt: result.PasswordChangedAt,
-		}
 		return nil
 	})
-	return updatedUser, err
+	return err
 } 
+
+type VerifyEmailTxParams struct {
+	OtpID	int64	`json:"id"`
+	Email	string	`json:"email"`
+	OtpCode	string	`json:"otp_code"`
+}
+
+type VerifyEmailTxResult struct {
+	UserName	string	`json:"user_name"`
+}
+func (store *Store) VerifyEmailTx(ctx context.Context, arg VerifyEmailTxParams) (VerifyEmailTxResult, error) {
+	var results VerifyEmailTxResult
+	err := store.execTx(ctx, func(q *Queries) error {
+		err := q.UpdateOTP(ctx, UpdateOTPParams{
+			ID: arg.OtpID,
+			OtpCode: arg.OtpCode,
+		})
+
+		if err != nil {
+			return err
+		}
+		user, err := q.VerifyEmail(ctx, arg.Email)
+		if err != nil {
+			return err
+		}
+		results.UserName = user.UserName
+		return nil
+	})
+	return results, err
+}
 
 type DeleteUserTxParams string
 
