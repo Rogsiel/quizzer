@@ -8,8 +8,6 @@ import (
 	"github.com/rogsiel/quizzer/config"
 )
 
-
-
 type EmailSender interface {
     SendEmail(
         subject     string,
@@ -19,6 +17,7 @@ type EmailSender interface {
         bcc         []string,
         attachments  []string,
     ) error
+    SendWelcomeEmail(NewUserInfo) error
 }
 
 type Emailer struct {
@@ -27,12 +26,8 @@ type Emailer struct {
     fromPassword    string
 }
 
-func NewEmail(name string, fromAddress string, fromPassword string) EmailSender {
-    return &Emailer{
-        name: name,
-        fromAddress: fromAddress,
-        fromPassword: fromPassword,
-    }
+func NewEmail() EmailSender {
+    return &Emailer{}
 }
 
 func (emailer *Emailer) SendEmail(
@@ -47,6 +42,10 @@ func (emailer *Emailer) SendEmail(
     if err != nil {
         return fmt.Errorf("Could not load config: %s", err)
     }
+    
+    emailer.name = config.EmailSenderName
+    emailer.fromAddress = config.EmailSenderAddress
+    emailer.fromPassword = config.EmailSenderPassword
 
     e := email.NewEmail()
     e.From = fmt.Sprintf("%s <%s>", emailer.name, emailer.fromAddress)
