@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/rogsiel/quizzer/internal/model"
@@ -29,10 +30,17 @@ func (store *Store) CreateQuizTx(ctx context.Context, arg CreateQuizTxParams) (C
 	var Quiz CreateQuizTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
+		isVerified, err := q.IsUserVerified(ctx, arg.UserID)
+		if !isVerified || err != nil {
+			return fmt.Errorf("Only verified users can make new quizzes")
+		}
+
+
 		Questions, err := json.Marshal(arg.Questions)
 		if err != nil {
 			return err
 		}
+		
 		Quiz.Quiz, err = q.CreateQuiz(ctx, CreateQuizParams{
 			UserID: arg.UserID,
 			UserName: arg.UserName,

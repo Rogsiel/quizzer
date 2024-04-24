@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -29,14 +30,19 @@ type AnswerTxResult struct{
 func (store *Store) AnswerTx(ctx context.Context, arg AnswerTxParams) (AnswerTxResult, error) {
 	var Result AnswerTxResult
 
-	err := store.execTx(ctx, func(q *Queries) error {
+	err := store.execTx(ctx, func(q *Queries) error {		
+		isVerified, err := q.IsUserVerified(ctx, arg.UserID)
+		if !isVerified || err != nil {
+			return fmt.Errorf("Only verified users can make new quizzes")
+		}		
+	
 		quizAnswers, err := store.GetCorrectAnswersTx(ctx, arg.QuizID)
 		if err != nil {
 			return err
 		}
 		userAnswers := arg.Responses
 		score := calculateScore(userAnswers, quizAnswers)
-		
+	
 		Result.Result, err = q.SendAnswers(ctx, SendAnswersParams{
 			QuizID: arg.QuizID,
 			UserID: arg.UserID,

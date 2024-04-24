@@ -63,6 +63,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.incrementAnsweredCountStmt, err = db.PrepareContext(ctx, incrementAnsweredCount); err != nil {
 		return nil, fmt.Errorf("error preparing query IncrementAnsweredCount: %w", err)
 	}
+	if q.isUserVerifiedStmt, err = db.PrepareContext(ctx, isUserVerified); err != nil {
+		return nil, fmt.Errorf("error preparing query IsUserVerified: %w", err)
+	}
 	if q.sendAnswersStmt, err = db.PrepareContext(ctx, sendAnswers); err != nil {
 		return nil, fmt.Errorf("error preparing query SendAnswers: %w", err)
 	}
@@ -148,6 +151,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing incrementAnsweredCountStmt: %w", cerr)
 		}
 	}
+	if q.isUserVerifiedStmt != nil {
+		if cerr := q.isUserVerifiedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing isUserVerifiedStmt: %w", cerr)
+		}
+	}
 	if q.sendAnswersStmt != nil {
 		if cerr := q.sendAnswersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing sendAnswersStmt: %w", cerr)
@@ -225,6 +233,7 @@ type Queries struct {
 	getUserQuizStmt            *sql.Stmt
 	getUsersStmt               *sql.Stmt
 	incrementAnsweredCountStmt *sql.Stmt
+	isUserVerifiedStmt         *sql.Stmt
 	sendAnswersStmt            *sql.Stmt
 	updateOTPStmt              *sql.Stmt
 	updatePasswordStmt         *sql.Stmt
@@ -249,6 +258,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserQuizStmt:            q.getUserQuizStmt,
 		getUsersStmt:               q.getUsersStmt,
 		incrementAnsweredCountStmt: q.incrementAnsweredCountStmt,
+		isUserVerifiedStmt:         q.isUserVerifiedStmt,
 		sendAnswersStmt:            q.sendAnswersStmt,
 		updateOTPStmt:              q.updateOTPStmt,
 		updatePasswordStmt:         q.updatePasswordStmt,

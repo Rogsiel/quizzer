@@ -7,8 +7,8 @@ import (
 )
 
 var(
-    subject string = "Welcome to Quizzer"
-    text    string = "Hi %s ! Please click the link to  verify : %s"
+    welcomSubject string = "Welcome to Quizzer"
+    welcomText    string = "Hi %s ! Please click the link to  verify : %s"
 )
 type NewUserInfo struct{
     UserName    string
@@ -22,15 +22,19 @@ func (emailer *Emailer) SendWelcomeEmail(userInfo NewUserInfo) error {
     }
 
     verificationLink := fmt.Sprintf(
-        "%sverify_email/%s/%s/email_verification",
+        "%sverify_email?otp_type=email_verification&otp_code=%s",
         config.OriginHost,
-        userInfo.Email,
         userInfo.OtpCode,
         )
     
-    text = fmt.Sprintf(text, userInfo.UserName, verificationLink)
+    welcomText = fmt.Sprintf(welcomText, userInfo.UserName, verificationLink)
 
-    err = emailer.SendEmail(subject, text, []string{userInfo.Email}, nil, nil, nil)
+    err = emailer.SendEmail(
+        welcomSubject,
+        welcomText,
+        []string{userInfo.Email},
+        nil, nil, nil,
+        )
     if err != nil {
         return err
     }

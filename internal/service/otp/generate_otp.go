@@ -42,7 +42,7 @@ func (otp *OTP) NewPasswordChangeOTP(email string) OTP {
     newOtp := OTP{
         Email: email,
         OtpCode: generateOTPCode(),
-        OtpType: EmailVerificationOTP,
+        OtpType: PasswordChangeOTP,
     }
     return newOtp
 }

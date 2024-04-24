@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-func (otp *OTP) VerifyOTP() error {
-    if otp.OtpType != EmailVerificationOTP {
+func (otp *OTP) VerifyOTP(otpType string) error {
+    if otp.OtpType != otpType {
         return errors.New("Invalid security code")
     }
     if !otp.ExpiredAt.After(time.Now()) {
