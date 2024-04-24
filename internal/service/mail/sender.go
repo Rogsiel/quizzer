@@ -18,6 +18,7 @@ type EmailSender interface {
         attachments  []string,
     ) error
     SendWelcomeEmail(NewUserInfo) error
+    SendPasswordResetEmail(ResetPasswordInfo) error
 }
 
 type Emailer struct {
