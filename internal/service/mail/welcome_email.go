@@ -22,7 +22,7 @@ func (emailer *Emailer) SendWelcomeEmail(userInfo NewUserInfo) error {
     }
 
     verificationLink := fmt.Sprintf(
-        "%sverify_email?otp_type=email_verification&otp_code=%s",
+        "%sverify-email?otp_type=email_verification&otp_code=%s",
         config.OriginHost,
         userInfo.OtpCode,
         )
