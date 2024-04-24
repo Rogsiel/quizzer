@@ -10,9 +10,7 @@ INSERT INTO "otp" (
 -- name: GetOTP :one
 SELECT * FROM "otp"
 WHERE
-  email = @email
-  AND otp_code = @otp_code
-  AND otp_type = @otp_type;
+  otp_code = @otp_code;
 
 -- name: UpdateOTP :exec
 UPDATE "otp"
@@ -20,6 +18,5 @@ SET
   is_used = TRUE
 WHERE
   id = @id
-  AND otp_code = @otp_code
   AND is_used = FALSE
   AND expired_at > now();
