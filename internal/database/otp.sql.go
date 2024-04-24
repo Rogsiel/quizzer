@@ -43,19 +43,11 @@ func (q *Queries) CreateOTP(ctx context.Context, arg CreateOTPParams) (Otp, erro
 const getOTP = `-- name: GetOTP :one
 SELECT id, email, otp_code, otp_type, is_used, created_at, expired_at FROM "otp"
 WHERE
-  email = $1
-  AND otp_code = $2
-  AND otp_type = $3
+  otp_code = $1
 `
 
-type GetOTPParams struct {
-	Email   string `json:"email"`
-	OtpCode string `json:"otp_code"`
-	OtpType string `json:"otp_type"`
-}
-
-func (q *Queries) GetOTP(ctx context.Context, arg GetOTPParams) (Otp, error) {
-	row := q.queryRow(ctx, q.getOTPStmt, getOTP, arg.Email, arg.OtpCode, arg.OtpType)
+func (q *Queries) GetOTP(ctx context.Context, otpCode string) (Otp, error) {
+	row := q.queryRow(ctx, q.getOTPStmt, getOTP, otpCode)
 	var i Otp
 	err := row.Scan(
 		&i.ID,
@@ -75,17 +67,11 @@ SET
   is_used = TRUE
 WHERE
   id = $1
-  AND otp_code = $2
   AND is_used = FALSE
   AND expired_at > now()
 `
 
-type UpdateOTPParams struct {
-	ID      int64  `json:"id"`
-	OtpCode string `json:"otp_code"`
-}
-
-func (q *Queries) UpdateOTP(ctx context.Context, arg UpdateOTPParams) error {
-	_, err := q.exec(ctx, q.updateOTPStmt, updateOTP, arg.ID, arg.OtpCode)
+func (q *Queries) UpdateOTP(ctx context.Context, id int64) error {
+	_, err := q.exec(ctx, q.updateOTPStmt, updateOTP, id)
 	return err
 }

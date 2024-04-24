@@ -111,19 +111,31 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersR
 	return items, nil
 }
 
+const isUserVerified = `-- name: IsUserVerified :one
+SELECT is_email_verified FROM "user"
+WHERE id = $1
+`
+
+func (q *Queries) IsUserVerified(ctx context.Context, userID int64) (bool, error) {
+	row := q.queryRow(ctx, q.isUserVerifiedStmt, isUserVerified, userID)
+	var is_email_verified bool
+	err := row.Scan(&is_email_verified)
+	return is_email_verified, err
+}
+
 const updatePassword = `-- name: UpdatePassword :exec
 UPDATE "user"
-SET hashed_password = $2, password_changed_at = NOW()
-WHERE user_name = $1
+SET hashed_password = $1, password_changed_at = NOW()
+WHERE email = $2
 `
 
 type UpdatePasswordParams struct {
-	UserName       string `json:"user_name"`
 	HashedPassword string `json:"hashed_password"`
+	Email          string `json:"email"`
 }
 
 func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error {
-	_, err := q.exec(ctx, q.updatePasswordStmt, updatePassword, arg.UserName, arg.HashedPassword)
+	_, err := q.exec(ctx, q.updatePasswordStmt, updatePassword, arg.HashedPassword, arg.Email)
 	return err
 }
 
